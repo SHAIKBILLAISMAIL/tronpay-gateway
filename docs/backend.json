@@ -1,0 +1,218 @@
+
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the TronPay Gateway.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user (matches Firebase Auth UID)."
+        },
+        "username": {
+          "type": "string",
+          "description": "The username or display name of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "registrationDate": {
+          "type": "string",
+          "description": "The date and time the user registered.",
+          "format": "date-time"
+        },
+        "securitySettings": {
+            "type": "object",
+            "description": "User-specific security preferences.",
+            "properties": {
+                "highRiskAlerts": { "type": "boolean" },
+                "largeTransferApprovals": { "type": "boolean" }
+            }
+        }
+      },
+      "required": ["id", "username", "email", "registrationDate"]
+    },
+    "UserWallet": {
+      "title": "UserWallet",
+      "type": "object",
+      "description": "Represents a user's wallet for various currencies.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who owns this wallet."
+        },
+        "name": {
+            "type": "string",
+            "description": "A user-friendly name for the wallet."
+        },
+        "walletAddress": {
+          "type": "string",
+          "description": "The public address of the wallet."
+        },
+        "privateKeyEncrypted": {
+          "type": "string",
+          "description": "Encrypted private key for the wallet. Placeholder for simulation."
+        },
+        "currencyType": {
+          "type": "string",
+          "description": "The currency of the wallet.",
+          "enum": ["USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "INR"]
+        },
+        "balance": {
+          "type": "number",
+          "description": "The current balance of the wallet."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the wallet was created."
+        }
+      },
+      "required": ["userId", "name", "walletAddress", "privateKeyEncrypted", "currencyType", "balance", "createdAt"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "type": "object",
+      "description": "Represents a transaction within the TronPay Gateway.",
+      "properties": {
+        "initiatorUserId": {
+          "type": "string",
+          "description": "The user who initiated this transaction."
+        },
+        "senderWalletId": {
+          "type": "string",
+          "description": "The sender's identifier, which can be a wallet address, IP address, or 'Credit/Debit Card'."
+        },
+        "receiverWalletId": {
+          "type": "string",
+          "description": "The recipient's wallet address or account identifier."
+        },
+        "transactionHash": {
+          "type": "string",
+          "description": "The transaction hash on the blockchain (mocked for now)."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount transferred."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of when the transaction occurred."
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the transaction (e.g., pending, confirmed, failed)."
+        },
+        "currencyType": {
+          "type": "string",
+          "description": "The type of currency transferred.",
+           "enum": ["USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "INR", "TRX", "USDT", "BTC", "ETH"]
+        },
+        "fee": {
+          "type": "number",
+          "description": "Transaction fee paid."
+        },
+        "memo": {
+            "type": "string",
+            "description": "An optional memo for the transaction."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of transaction (p2p, card, ip)."
+        },
+        "serverDetails": {
+            "type": "object",
+            "description": "Technical details for Advanced IP Transfers.",
+            "properties": {
+                "hostName": { "type": "string" },
+                "commonAccount": { "type": "string" },
+                "logonServerIp": { "type": "string" },
+                "globalServerIp": { "type": "string" },
+                "globalServerId": { "type": "string" },
+                "receivingServerIp": { "type": "string" },
+                "receivingServerId": { "type": "string" },
+                "commonServerIp": { "type": "string" }
+            }
+        }
+      },
+      "required": ["initiatorUserId", "senderWalletId", "receiverWalletId", "transactionHash", "amount", "timestamp", "status", "currencyType", "type"]
+    },
+    "BankAccount": {
+      "title": "BankAccount",
+      "type": "object",
+      "description": "Represents a user's linked bank account.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who owns this account."
+        },
+        "bankName": { "type": "string" },
+        "accountHolder": { "type": "string" },
+        "accountNumber": { "type": "string", "description": "Masked account number for display." },
+        "routingNumber": { "type": "string", "description": "Routing number (should be encrypted in a real app)." },
+        "balance": { "type": "number" },
+        "currency": { 
+            "type": "string",
+            "enum": ["USD", "EUR", "JPY", "GBP", "AUD", "CAD", "CHF", "CNY", "INR"] 
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "bankName", "accountHolder", "accountNumber", "routingNumber", "balance", "currency", "createdAt"]
+    },
+    "RiskAssessment": {
+      "title": "RiskAssessment",
+      "type": "object",
+      "description": "Represents the risk assessment of a transaction.",
+      "properties": {
+        "transactionId": {
+          "type": "string",
+          "description": "Reference to the Transaction being assessed."
+        },
+        "riskScore": {
+          "type": "number",
+          "description": "A numerical score indicating the risk level (0-100)."
+        },
+        "flags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "assessmentTimestamp": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["transactionId", "riskScore", "flags", "assessmentTimestamp"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password"
+    ]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores public user profile data. The document ID is the Firebase Auth UID."
+    },
+    "/users/{userId}/wallets/{walletId}": {
+      "schema": { "$ref": "#/entities/UserWallet" },
+      "description": "Subcollection for a user's wallets. Path-based ownership simplifies security."
+    },
+    "/users/{userId}/bankAccounts/{accountId}": {
+        "schema": { "$ref": "#/entities/BankAccount" },
+        "description": "Subcollection for a user's linked bank accounts."
+    },
+    "/users/{userId}/all_transactions/{transactionId}": {
+        "schema": { "$ref": "#/entities/Transaction" },
+        "description": "Subcollection for ALL of a user's initiated transactions."
+    },
+    "/risk_assessments/{assessmentId}": {
+      "schema": { "$ref": "#/entities/RiskAssessment" },
+      "description": "Top-level collection for storing AI risk assessment results."
+    }
+  }
+}

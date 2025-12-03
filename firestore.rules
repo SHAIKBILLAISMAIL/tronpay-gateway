@@ -1,0 +1,163 @@
+/**
+ * @file Firestore Security Rules
+ * @description This ruleset enforces a strict user-ownership model for most data, with public read access to risk assessments.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores public user profile data. Document ID is the Firebase Auth UID.
+ * - /users/{userId}/wallets/{walletId}: Stores user's wallet information.
+ * - /users/{userId}/bankAccounts/{accountId}: Stores user's linked bank accounts.
+ * - /users/{userId}/all_transactions/{transactionId}: Stores all transactions initiated by a user.
+ * - /risk_assessments/{assessmentId}: Stores risk assessment data, publicly readable.
+ *
+ * Key Security Decisions:
+ * - User data and related subcollections (wallets, bankAccounts, transactions) are strictly accessible only to the owning user.
+ * - Listing of user documents is disallowed.
+ * - Risk assessments are publicly readable but write-protected.
+ *
+ * Denormalization for Authorization:
+ * - User subcollections rely on path-based authorization (userId in the path must match request.auth.uid). No data denormalization is required.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Secure root access.  All paths must match a more specific rule.
+     * @path /databases/{database}/documents
+     * @allow (get): Never. Must match a specific collection.
+     * @allow (list): Never. Must match a specific collection.
+     * @allow (create): Never. Root collection access not allowed.
+     * @allow (update): Never. Root collection access not allowed.
+     * @allow (delete): Never. Root collection access not allowed.
+     * @principle Prevents open access to the entire database.
+     */
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    /**
+     * @description Manages access to user profile documents.
+     * @path /users/{userId}
+     * @allow (get): Authenticated user can read their own profile.
+     * @allow (list): Not allowed to list all users.
+     * @allow (create): Authenticated user can create their own profile.
+     * @allow (update): Authenticated user can update their own profile.
+     * @allow (delete): Authenticated user can delete their own profile.
+     * @deny   (create): User attempts to create a profile with an ID that doesn't match their UID.
+     * @deny   (update): User attempts to update a profile that doesn't belong to them.
+     * @principle Enforces user-ownership; prevents unauthorized profile access and modification.
+     */
+    match /users/{userId} {
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isSignedIn() && isExistingOwner(userId);
+    }
+
+    /**
+     * @description Manages access to user wallets.
+     * @path /users/{userId}/wallets/{walletId}
+     * @allow (get): Authenticated user can read their own wallet.
+     * @allow (list): Authenticated user can list their own wallets.
+     * @allow (create): Authenticated user can create a wallet in their own profile.
+     * @allow (update): Authenticated user can update their own wallet.
+     * @allow (delete): Authenticated user can delete their own wallet.
+     * @deny   (create): User attempts to create a wallet in another user's profile.
+     * @deny   (update): User attempts to update a wallet that doesn't belong to them.
+     * @principle Enforces user-ownership; prevents unauthorized wallet access and modification.
+     */
+    match /users/{userId}/wallets/{walletId} {
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isExistingOwner(userId);
+    }
+
+    /**
+     * @description Manages access to user bank accounts.
+     * @path /users/{userId}/bankAccounts/{accountId}
+     * @allow (get): Authenticated user can read their own bank account.
+     * @allow (list): Authenticated user can list their own bank accounts.
+     * @allow (create): Authenticated user can create a bank account in their own profile.
+     * @allow (update): Authenticated user can update their own bank account.
+     * @allow (delete): Authenticated user can delete their own bank account.
+     * @deny   (create): User attempts to create a bank account in another user's profile.
+     * @deny   (update): User attempts to update a bank account that doesn't belong to them.
+     * @principle Enforces user-ownership; prevents unauthorized bank account access and modification.
+     */
+    match /users/{userId}/bankAccounts/{accountId} {
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isSignedIn() && isExistingOwner(userId);
+    }
+
+        /**
+     * @description Manages access to user transactions.
+     * @path /users/{userId}/all_transactions/{transactionId}
+     * @allow (get): Authenticated user can read their own transaction.
+     * @allow (list): Authenticated user can list their own transactions.
+     * @allow (create): Authenticated user can create a transaction in their own profile.
+     * @allow (update): Authenticated user can update their own transaction.
+     * @allow (delete): Authenticated user can delete their own transaction.
+     * @deny   (create): User attempts to create a transaction in another user's profile.
+     * @deny   (update): User attempts to update a transaction that doesn't belong to them.
+     * @principle Enforces user-ownership; prevents unauthorized transaction access and modification.
+     */
+    match /users/{userId}/all_transactions/{transactionId} {
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if isSignedIn() && isOwner(userId);
+      allow create: if isSignedIn() && isOwner(userId) && request.resource.data.initiatorUserId == userId;
+      allow update: if isSignedIn() && isExistingOwner(userId) && request.resource.data.initiatorUserId == resource.data.initiatorUserId;
+      allow delete: if isSignedIn() && isExistingOwner(userId);
+    }
+
+    /**
+     * @description Manages access to risk assessments.
+     * @path /risk_assessments/{assessmentId}
+     * @allow (get): Anyone can read risk assessments.
+     * @allow (list): Anyone can list risk assessments.
+     * @allow (create): Not allowed to create risk assessments via client.
+     * @allow (update): Not allowed to update risk assessments via client.
+     * @allow (delete): Not allowed to delete risk assessments via client.
+     * @principle Provides public read access, restricts write access.
+     */
+    match /risk_assessments/{assessmentId} {
+      allow get, list: if true;
+      allow create, update, delete: if false;
+    }
+
+  }
+
+  /**
+   * @description Checks if the request is authenticated.
+   * @return {bool} True if the request is authenticated, false otherwise.
+   * @example isSignedIn() // returns true if request.auth != null
+   */
+  function isSignedIn() {
+    return request.auth != null;
+  }
+
+  /**
+   * @description Checks if the authenticated user is the owner of the resource.
+   * @param {string} userId The user ID to compare against the authenticated user's UID.
+   * @return {bool} True if the authenticated user is the owner, false otherwise.
+   * @example isOwner("someUserId") // returns true if request.auth.uid == "someUserId"
+   */
+  function isOwner(userId) {
+    return request.auth.uid == userId;
+  }
+
+    /**
+   * @description Checks if the authenticated user is the existing owner of the resource.
+   * @param {string} userId The user ID to compare against the authenticated user's UID.
+   * @return {bool} True if the authenticated user is the owner and resource exists, false otherwise.
+   * @example isExistingOwner("someUserId") // returns true if request.auth.uid == "someUserId" and resource exists
+   */
+  function isExistingOwner(userId) {
+    return isSignedIn() && isOwner(userId) && resource != null;
+  }
+}
