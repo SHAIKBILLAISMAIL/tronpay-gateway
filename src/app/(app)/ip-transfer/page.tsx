@@ -43,7 +43,7 @@ const IPTransferPage = () => {
   const handleTransfer = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsProcessing(true);
-    
+
     const userId = auth.currentUser?.uid;
     if (!userId) {
       toast({
@@ -69,9 +69,11 @@ const IPTransferPage = () => {
       globalServerId: formData.get('global-server-id') as string,
       receivingServerIp: formData.get('receiving-server-ip') as string,
       receivingServerId: formData.get('receiving-server-id') as string,
+      terminalName: formData.get('terminal-name') as string,
+      farmName: formData.get('farm-name') as string,
       commonServerIp: formData.get('common-server-ip') as string,
     };
-    
+
     if (!sendingServerIp || !recipientWalletId || !amount || !currencyType) {
       toast({
         variant: 'destructive',
@@ -108,23 +110,23 @@ const IPTransferPage = () => {
       const transactionsRef = collection(firestore, `users/${userId}/all_transactions`);
       const newTransactionRef = doc(transactionsRef);
       const transactionData = {
-          initiatorUserId: userId,
-          senderWalletId: sendingServerIp,
-          receiverWalletId: recipientWalletData.walletAddress,
-          transactionHash: `mock_ip_tx_${new Date().getTime()}`,
-          amount: amount,
-          currencyType: currencyType,
-          timestamp: serverTimestamp(),
-          status: 'completed',
-          memo: 'IP to Wallet Deposit',
-          fee: 0.05,
-          type: 'ip',
-          serverDetails: serverDetails,
+        initiatorUserId: userId,
+        senderWalletId: sendingServerIp,
+        receiverWalletId: recipientWalletData.walletAddress,
+        transactionHash: `mock_ip_tx_${new Date().getTime()}`,
+        amount: amount,
+        currencyType: currencyType,
+        timestamp: serverTimestamp(),
+        status: 'completed',
+        memo: 'IP to Wallet Deposit',
+        fee: 0.05,
+        type: 'ip',
+        serverDetails: serverDetails,
       };
       batch.set(newTransactionRef, transactionData);
-      
+
       await batch.commit();
-      
+
       toast({
         title: 'Transfer Successful!',
         description: `Successfully deposited ${amount.toLocaleString('en-US', { style: 'currency', currency: currencyType })} to ${recipientWalletData.name}.`,
@@ -148,6 +150,15 @@ const IPTransferPage = () => {
     }
   };
 
+  const [generatedValues, setGeneratedValues] = useState({ terminal: '', farm: '' });
+
+  React.useEffect(() => {
+    setGeneratedValues({
+      terminal: `TERM-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+      farm: `FARM-${Math.floor(Math.random() * 100).toString().padStart(3, '0')}`
+    });
+  }, []);
+
   return (
     <div className="flex flex-col gap-4">
       <CardHeader className="p-0">
@@ -163,104 +174,128 @@ const IPTransferPage = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="host-name">Host Name</Label>
-                    <Input id="host-name" name="host-name" placeholder="e.g., server.example.com" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="common-account">Common Account</Label>
-                    <Input id="common-account" name="common-account" placeholder="e.g., global_pool_01" />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="host-name">Host Name</Label>
+                <Input id="host-name" name="host-name" placeholder="e.g., server.example.com" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="common-account">Common Account</Label>
+                <Input id="common-account" name="common-account" placeholder="e.g., global_pool_01" />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div className="space-y-2">
-                    <Label htmlFor="sending-server-ip">Sending Server IP</Label>
-                    <Input id="sending-server-ip" name="sending-server-ip" placeholder="e.g., 192.168.1.1" required />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="logon-server-ip">Logon Server IP</Label>
-                    <Input id="logon-server-ip" name="logon-server-ip" placeholder="e.g., 192.168.1.2" />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="sending-server-ip">Sending Server IP</Label>
+                <Input id="sending-server-ip" name="sending-server-ip" placeholder="e.g., 192.168.1.1" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="logon-server-ip">Logon Server IP</Label>
+                <Input id="logon-server-ip" name="logon-server-ip" placeholder="e.g., 192.168.1.2" />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="global-server-ip">Global Server IP</Label>
-                    <Input id="global-server-ip" name="global-server-ip" placeholder="e.g., 10.0.0.1" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="global-server-id">Global Server ID</Label>
-                    <Input id="global-server-id" name="global-server-id" placeholder="e.g., GBL-SVR-001" />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="global-server-ip">Global Server IP</Label>
+                <Input id="global-server-ip" name="global-server-ip" placeholder="e.g., 10.0.0.1" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="global-server-id">Global Server ID</Label>
+                <Input id="global-server-id" name="global-server-id" placeholder="e.g., GBL-SVR-001" />
+              </div>
             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="receiving-server-ip">Receiving Server IP</Label>
-                    <Input id="receiving-server-ip" name="receiving-server-ip" placeholder="e.g., 10.0.0.2" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="receiving-server-id">Receiving Server ID</Label>
-                    <Input id="receiving-server-id" name="receiving-server-id" placeholder="e.g., RCV-SVR-002" />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="receiving-server-ip">Receiving Server IP</Label>
+                <Input id="receiving-server-ip" name="receiving-server-ip" placeholder="e.g., 10.0.0.2" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="receiving-server-id">Receiving Server ID</Label>
+                <Input id="receiving-server-id" name="receiving-server-id" placeholder="e.g., RCV-SVR-002" />
+              </div>
             </div>
-             <div className="space-y-2">
-                <Label htmlFor="common-server-ip">Common Server IP</Label>
-                <Input id="common-server-ip" name="common-server-ip" placeholder="e.g., 10.0.0.3" />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="terminal-name">Terminal Name</Label>
+                <Input
+                  id="terminal-name"
+                  name="terminal-name"
+                  placeholder="e.g., TERM-0001"
+                  defaultValue={generatedValues.terminal}
+                  key={generatedValues.terminal}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="farm-name">Farm Name/No</Label>
+                <Input
+                  id="farm-name"
+                  name="farm-name"
+                  placeholder="e.g., FARM-01"
+                  defaultValue={generatedValues.farm}
+                  key={generatedValues.farm}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="recipient-wallet">Recipient Wallet</Label>
-                <Select name="recipient-wallet" required>
-                    <SelectTrigger id="recipient-wallet" disabled={isLoadingWallets || !wallets}>
-                        <SelectValue placeholder={isLoadingWallets ? "Loading wallets..." : "Select a wallet"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {wallets?.map(wallet => (
-                            <SelectItem key={wallet.id} value={wallet.id}>
-                                <span className="font-medium">{wallet.name}</span>
-                                <span className="text-muted-foreground ml-2 truncate">{wallet.walletAddress}</span>
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+              <Label htmlFor="common-server-ip">Common Server IP</Label>
+              <Input id="common-server-ip" name="common-server-ip" placeholder="e.g., 10.0.0.3" />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="recipient-wallet">Recipient Wallet</Label>
+              <Select name="recipient-wallet" required>
+                <SelectTrigger id="recipient-wallet" disabled={isLoadingWallets || !wallets}>
+                  <SelectValue placeholder={isLoadingWallets ? "Loading wallets..." : "Select a wallet"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {wallets?.map(wallet => (
+                    <SelectItem key={wallet.id} value={wallet.id}>
+                      <span className="font-medium">{wallet.name}</span>
+                      <span className="text-muted-foreground ml-2 truncate">{wallet.walletAddress}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="amount">Amount</Label>
-                    <Input id="amount" name="amount" type="number" placeholder="0.00" required />
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="currency-type">Currency</Label>
-                    <Select name="currency-type" defaultValue="USD" required>
-                        <SelectTrigger id="currency-type">
-                            <SelectValue placeholder="Select currency" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="USD">USD ($)</SelectItem>
-                            <SelectItem value="EUR">EUR (€)</SelectItem>
-                            <SelectItem value="JPY">JPY (¥)</SelectItem>
-                            <SelectItem value="GBP">GBP (£)</SelectItem>
-                            <SelectItem value="AUD">AUD (A$)</SelectItem>
-                            <SelectItem value="CAD">CAD (C$)</SelectItem>
-                            <SelectItem value="CHF">CHF (Fr)</SelectItem>
-                            <SelectItem value="CNY">CNY (¥)</SelectItem>
-                            <SelectItem value="INR">INR (₹)</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="amount">Amount</Label>
+                <Input id="amount" name="amount" type="number" placeholder="0.00" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="currency-type">Currency</Label>
+                <Select name="currency-type" defaultValue="USD" required>
+                  <SelectTrigger id="currency-type">
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="JPY">JPY (¥)</SelectItem>
+                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                    <SelectItem value="AUD">AUD (A$)</SelectItem>
+                    <SelectItem value="CAD">CAD (C$)</SelectItem>
+                    <SelectItem value="CHF">CHF (Fr)</SelectItem>
+                    <SelectItem value="CNY">CNY (¥)</SelectItem>
+                    <SelectItem value="INR">INR (₹)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
           <CardFooter>
             <Button type="submit" className="w-full group" disabled={isProcessing}>
-               {isProcessing ? (
-                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground"></div>
-                ) : (
-                    <>
-                        Send Transfer
-                        <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                    </>
-                )}
+              {isProcessing ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground"></div>
+              ) : (
+                <>
+                  Send Transfer
+                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </Button>
           </CardFooter>
         </form>
@@ -271,4 +306,3 @@ const IPTransferPage = () => {
 
 export default IPTransferPage;
 
-    
