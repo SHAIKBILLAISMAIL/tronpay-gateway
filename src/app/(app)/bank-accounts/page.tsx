@@ -67,6 +67,7 @@ const BankAccountsPage = () => {
     const swiftCode = formData.get('swift-code') as string;
     const accountNumber = formData.get('account-number') as string;
     const confirmAccountNumber = formData.get('confirm-account-number') as string;
+    const currency = formData.get('currency') as string;
     const accountType = formData.get('account-type') as string;
     const beneficiaryName = formData.get('beneficiary-name') as string;
     const userId = auth.currentUser.uid;
@@ -78,6 +79,7 @@ const BankAccountsPage = () => {
       !swiftCode ||
       !accountNumber ||
       !confirmAccountNumber ||
+      !currency ||
       !accountType ||
       !beneficiaryName
     ) {
@@ -117,7 +119,7 @@ const BankAccountsPage = () => {
       fullAccountNumberEncrypted: accountNumber,
       accountType,
       beneficiaryName,
-      currency: 'USD',
+      currency,
     };
 
     try {
@@ -262,6 +264,46 @@ const BankAccountsPage = () => {
                     defaultValue={editingAccount?.fullAccountNumberEncrypted}
                     required
                   />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="currency" className="text-right">
+                    Currency
+                  </Label>
+                  <Select name="currency" defaultValue={editingAccount?.currency || 'USD'} required>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD - US Dollar ($)</SelectItem>
+                      <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
+                      <SelectItem value="GBP">GBP - British Pound (£)</SelectItem>
+                      <SelectItem value="JPY">JPY - Japanese Yen (¥)</SelectItem>
+                      <SelectItem value="AUD">AUD - Australian Dollar (A$)</SelectItem>
+                      <SelectItem value="CAD">CAD - Canadian Dollar (C$)</SelectItem>
+                      <SelectItem value="CHF">CHF - Swiss Franc (Fr)</SelectItem>
+                      <SelectItem value="CNY">CNY - Chinese Yuan (¥)</SelectItem>
+                      <SelectItem value="INR">INR - Indian Rupee (₹)</SelectItem>
+                      <SelectItem value="MXN">MXN - Mexican Peso ($)</SelectItem>
+                      <SelectItem value="BRL">BRL - Brazilian Real (R$)</SelectItem>
+                      <SelectItem value="ZAR">ZAR - South African Rand (R)</SelectItem>
+                      <SelectItem value="SGD">SGD - Singapore Dollar (S$)</SelectItem>
+                      <SelectItem value="HKD">HKD - Hong Kong Dollar (HK$)</SelectItem>
+                      <SelectItem value="NZD">NZD - New Zealand Dollar (NZ$)</SelectItem>
+                      <SelectItem value="SEK">SEK - Swedish Krona (kr)</SelectItem>
+                      <SelectItem value="NOK">NOK - Norwegian Krone (kr)</SelectItem>
+                      <SelectItem value="DKK">DKK - Danish Krone (kr)</SelectItem>
+                      <SelectItem value="PLN">PLN - Polish Zloty (zł)</SelectItem>
+                      <SelectItem value="THB">THB - Thai Baht (฿)</SelectItem>
+                      <SelectItem value="MYR">MYR - Malaysian Ringgit (RM)</SelectItem>
+                      <SelectItem value="IDR">IDR - Indonesian Rupiah (Rp)</SelectItem>
+                      <SelectItem value="PHP">PHP - Philippine Peso (₱)</SelectItem>
+                      <SelectItem value="KRW">KRW - South Korean Won (₩)</SelectItem>
+                      <SelectItem value="TRY">TRY - Turkish Lira (₺)</SelectItem>
+                      <SelectItem value="RUB">RUB - Russian Ruble (₽)</SelectItem>
+                      <SelectItem value="AED">AED - UAE Dirham (د.إ)</SelectItem>
+                      <SelectItem value="SAR">SAR - Saudi Riyal (﷼)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="account-type" className="text-right">

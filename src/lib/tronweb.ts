@@ -3,7 +3,7 @@
 import * as TronWebLib from 'tronweb';
 
 // TRON API Configuration
-const TRON_API_KEY = 'bd95831f-cd56-4ff1-a6de-c2f184adbc1f';
+const TRON_API_KEY = '2d80cc66-077b-4fa1-ad5b-e799c0461474';
 const TRON_NETWORK = 'shasta'; // Use 'mainnet' for production
 
 // Network URLs
