@@ -151,12 +151,41 @@ const IPTransferPage = () => {
   };
 
   const [generatedValues, setGeneratedValues] = useState({ terminal: '', farm: '' });
+  const [serverIpData, setServerIpData] = useState({
+    sendingServerIp: '',
+    logonServerIp: '',
+    globalServerIp: '',
+    receivingServerIp: '',
+    commonServerIp: '',
+    host: '',
+  });
+  const [isLoadingIp, setIsLoadingIp] = useState(true);
 
   React.useEffect(() => {
     setGeneratedValues({
       terminal: `TERM-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
       farm: `FARM-${Math.floor(Math.random() * 100).toString().padStart(3, '0')}`
     });
+
+    // Fetch server IP information
+    fetch('/api/server-ip')
+      .then(res => res.json())
+      .then(data => {
+        setServerIpData({
+          sendingServerIp: data.sendingServerIp || '',
+          logonServerIp: data.logonServerIp || '',
+          globalServerIp: data.globalServerIp || '',
+          receivingServerIp: data.receivingServerIp || '',
+          commonServerIp: data.commonServerIp || '',
+          host: data.host || '',
+        });
+      })
+      .catch(err => {
+        console.error('Failed to fetch server IP:', err);
+      })
+      .finally(() => {
+        setIsLoadingIp(false);
+      });
   }, []);
 
   return (
@@ -165,6 +194,10 @@ const IPTransferPage = () => {
         <CardTitle>Advanced IP Transfer</CardTitle>
         <CardDescription>
           Simulate a deposit from an external server to one of your wallets.
+          {isLoadingIp && <span className="ml-2 text-blue-500">🔄 Loading server IP...</span>}
+          {!isLoadingIp && serverIpData.sendingServerIp && (
+            <span className="ml-2 text-green-500">✓ Server IP loaded</span>
+          )}
         </CardDescription>
       </CardHeader>
       <Card className="mx-auto w-full max-w-2xl">
@@ -176,7 +209,13 @@ const IPTransferPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="host-name">Host Name</Label>
-                <Input id="host-name" name="host-name" placeholder="e.g., server.example.com" />
+                <Input
+                  id="host-name"
+                  name="host-name"
+                  placeholder="e.g., server.example.com"
+                  defaultValue={serverIpData.host}
+                  key={serverIpData.host}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="common-account">Common Account</Label>
@@ -187,18 +226,37 @@ const IPTransferPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="sending-server-ip">Sending Server IP</Label>
-                <Input id="sending-server-ip" name="sending-server-ip" placeholder="e.g., 192.168.1.1" required />
+                <Input
+                  id="sending-server-ip"
+                  name="sending-server-ip"
+                  placeholder={serverIpData.sendingServerIp || "e.g., 192.168.1.1"}
+                  defaultValue={serverIpData.sendingServerIp}
+                  key={serverIpData.sendingServerIp}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="logon-server-ip">Logon Server IP</Label>
-                <Input id="logon-server-ip" name="logon-server-ip" placeholder="e.g., 192.168.1.2" />
+                <Input
+                  id="logon-server-ip"
+                  name="logon-server-ip"
+                  placeholder={serverIpData.logonServerIp || "e.g., 192.168.1.2"}
+                  defaultValue={serverIpData.logonServerIp}
+                  key={serverIpData.logonServerIp}
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="global-server-ip">Global Server IP</Label>
-                <Input id="global-server-ip" name="global-server-ip" placeholder="e.g., 10.0.0.1" />
+                <Input
+                  id="global-server-ip"
+                  name="global-server-ip"
+                  placeholder={serverIpData.globalServerIp || "e.g., 10.0.0.1"}
+                  defaultValue={serverIpData.globalServerIp}
+                  key={serverIpData.globalServerIp}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="global-server-id">Global Server ID</Label>
@@ -208,7 +266,13 @@ const IPTransferPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="receiving-server-ip">Receiving Server IP</Label>
-                <Input id="receiving-server-ip" name="receiving-server-ip" placeholder="e.g., 10.0.0.2" />
+                <Input
+                  id="receiving-server-ip"
+                  name="receiving-server-ip"
+                  placeholder={serverIpData.receivingServerIp || "e.g., 10.0.0.2"}
+                  defaultValue={serverIpData.receivingServerIp}
+                  key={serverIpData.receivingServerIp}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="receiving-server-id">Receiving Server ID</Label>
@@ -241,7 +305,13 @@ const IPTransferPage = () => {
 
             <div className="space-y-2">
               <Label htmlFor="common-server-ip">Common Server IP</Label>
-              <Input id="common-server-ip" name="common-server-ip" placeholder="e.g., 10.0.0.3" />
+              <Input
+                id="common-server-ip"
+                name="common-server-ip"
+                placeholder={serverIpData.commonServerIp || "e.g., 10.0.0.3"}
+                defaultValue={serverIpData.commonServerIp}
+                key={serverIpData.commonServerIp}
+              />
             </div>
 
             <div className="space-y-2">
